@@ -15,7 +15,7 @@ export default class Todolist extends Component {
             return (
                 <li key={id} className="list-group-item">
                     <TodoListItem {...itemProps}
-                        onDeleted={ () => {onDeleted(id)}}
+                        onDeleted={ () => onDeleted(id)}
                         onToggleImportant={() => onToggleImportant(id)}
                         onToggleDone={() => onToggleDone(id)}
                     />

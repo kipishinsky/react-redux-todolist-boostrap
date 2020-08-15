@@ -11,20 +11,17 @@ const TodolistItem = ({done, important, onToggleImportant, onToggleDone, label, 
 			classNames += ' important'
 		}
 		return (
-
 			<span className={classNames}>
 				<span
 					className="todo-list-item-label"
-					onClick={onToggleDone}
-				>
+					onClick={onToggleDone}>
 					{label}
 				</span>
 
 				<button
 					type="button"
 					className="btn btn-outline-success btn-sm float-right"
-					onClick={onToggleImportant}
-				>
+					onClick={onToggleImportant}>
 					<svg
 						width="22px"
 						height="22px"

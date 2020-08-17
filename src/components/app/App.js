@@ -7,151 +7,130 @@ import ItemStatusFilter from '../item-status-filter/ItemStatusFilter'
 import './App.css'
 import ItemAddForm from "../item-add-form";
 
-
 export default class App extends Component {
 
-	maxId = 100
+  maxId = 100;
 
-	state = {
-		todoData: [
-			this.createTodoItem('Drink Coffee'),
-			this.createTodoItem('Make Awesome App'),
-			this.createTodoItem('Have a lunch')
-		],
-		term: '',
-		filter: 'all'
-	}
+  state = {
+    items: [
+      { id: 1, label: 'Drink Coffee', important: false, done: false },
+      { id: 2, label: 'Learn React', important: true, done: false },
+      { id: 3, label: 'Make Awesome App', important: false, done: false }
+    ],
+    filter: 'all',
+    search: ''
+  };
 
-	createTodoItem(label) {
-		return {
-			label,
-			important: false,
-			done: false,
-			id: this.maxId++
-		}
-	}
+  onItemAdded = (label) => {
+    this.setState((state) => {
+      const item = this.createItem(label);
+      return { items: [...state.items, item] };
+    })
+  };
 
-	deleteItem = (id) => {
-		// неправильно мапятся элементы
-		this.setState(({todoData}) => {
-			const idx = todoData.findIndex((el) => el.id === id)
-			const newArray = {
-				...todoData.slice(0, idx),
-				...todoData.slice(idx + 1)
-			}
-			return {
-				todoData: newArray
-			}
-		})
-	}
+  toggleProperty = (arr, id, propName) => {
+    const idx = arr.findIndex((item) => item.id === id);
+    const oldItem = arr[idx];
+    const value = !oldItem[propName];
 
-	addItem = (text) => {
-		const newItem = this.createTodoItem(text)
+    const item = { ...arr[idx], [propName]: value } ;
+    return [
+      ...arr.slice(0, idx),
+      item,
+      ...arr.slice(idx + 1)
+    ];
+  };
 
-		this.setState(({todoData}) => {
-			const newArr = [
-				...todoData,
-				newItem
-			]
-			return {
-				todoData: newArr
-			}
-		})
-	}
+  onToggleDone = (id) => {
+    this.setState((state) => {
+      const items = this.toggleProperty(state.items, id, 'done');
+      return { items };
+    });
+  };
 
-	toggleProperty(arr, id, propName) {
+  onToggleImportant = (id) => {
+    this.setState((state) => {
+      const items = this.toggleProperty(state.items, id, 'important');
+      return { items };
+    });
+  };
 
-		const idx = arr.findIndex((el) => el.id === id)
+  onDelete = (id) => {
+    this.setState((state) => {
+      const idx = state.items.findIndex((item) => item.id === id);
+      const items = [
+        ...state.items.slice(0, idx),
+        ...state.items.slice(idx + 1)
+      ];
+      return { items };
+    });
+  };
 
-		const oldItem = arr[idx]
-		const newItem = {...oldItem, [propName]: !oldItem[propName]}
-		debugger
-		return [
-			...arr.slice(0, idx),
-			newItem,
-			...arr.slice(idx + 1)
+  onFilterChange = (filter) => {
+    this.setState({ filter });
+  };
 
-		] // пушится не {} а newItem как новый элемент стейта
-	}
+  onSearchChange = (search) => {
+    this.setState({ search });
+  };
 
-	onToggleImportant = (id) => {
-		this.setState(({todoData}) => {
-			return {
-				todoDate: this.toggleProperty(todoData, id, 'important')
-			}
-		})
-	}
+  createItem(label) {
+    return {
+      id: ++this.maxId,
+      label,
+      important: false,
+      done: false
+    };
+  }
 
-	onToggleDone = (id) => {
-		this.setState(({todoData}) => {
+  filterItems(items, filter) {
+    if (filter === 'all') {
+      return items;
+    } else if (filter === 'active') {
+      return items.filter((item) => (!item.done));
+    } else if (filter === 'done') {
+      return items.filter((item) => item.done);
+    }
+  }
 
-			return {
-				todoDate: this.toggleProperty(todoData, id, 'done')
-			}
-		})
-	}
+  searchItems(items, search) {
+    if (search.length === 0) {
+      return items;
+    }
 
-	search(items, term) {
+    return items.filter((item) => {
+      return item.label.toLowerCase().indexOf(search.toLowerCase()) > -1;
+    });
+  }
 
-		if (term.length === 0) {
-			return items
-		}
-		return items.filter((item) => {
-			return item.label.toLowerCase().indexOf(term.toLowerCase()) > -1
-		})
-	}
+  render() {
+    const { items, filter, search } = this.state;
+    const doneCount = items.filter((item) => item.done).length;
+    const toDoCount = items.length - doneCount;
+    const visibleItems = this.searchItems(this.filterItems(items, filter), search);
 
-	filter(items, filter) {
-		switch (filter) {
-			case 'all':
-				return items
-			case 'active':
-				return items.filter( item => !item.done)
-			case 'done':
-				return items.filter( item => item.done)
-			default:
-				return items
-		}
-	}
+    return (
+      <div className="todo-app">
+        <AppHeader toDo={toDoCount} done={doneCount}/>
 
-	onSearchChange = (term) => {
-		this.setState({term})
-	}
+        <div className="search-panel d-flex">
+          <SearchPanel
+            onSearchChange={this.onSearchChange}/>
 
-	onFilterChange = (filter) => {
-		this.setState({filter})
-	}
+          <ItemStatusFilter
+            filter={filter}
+            onFilterChange={this.onFilterChange} />
+        </div>
 
-	render() {
+        <TodoList
+          items={ visibleItems }
+          onToggleImportant={this.onToggleImportant}
+          onToggleDone={this.onToggleDone}
+          onDelete={this.onDelete} />
 
-		const {todoData, term, filter} = this.state
-
-		const visibleItems = this.filter(this.search(todoData, term), filter)
-
-		const doneCount = todoData.filter(el => el.done).length
-		const todoCount = todoData.length - doneCount
-
-		return (
-			<div className="todo-app">
-				<AppHeader toDo={todoCount} done={doneCount}/>
-				<div className="top-panel d-flex">
-					<SearchPanel onSearchChange={this.onSearchChange}/>
-					<ItemStatusFilter
-						filter={filter}
-						onFilterChange={this.onFilterChange}
-					/>
-				</div>
-
-				<TodoList
-					todos={visibleItems}
-					onDeleted={this.deleteItem}
-					onToggleImportant={this.onToggleImportant}
-					onToggleDone={this.onToggleDone}
-				/>
-
-				<ItemAddForm addItem={this.addItem}/>
-			</div>
-		)
-	}
+        <ItemAddForm
+          onItemAdded={this.onItemAdded} />
+      </div>
+    );
+  };
 }
-

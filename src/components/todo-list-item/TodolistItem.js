@@ -1,7 +1,7 @@
 import React from 'react';
 import './TodolistItem.css';
 
-const TodolistItem = ({done, important, onToggleImportant, onToggleDone, label, onDeleted}) => {
+const TodolistItem = ({done, important, onToggleImportant, onToggleDone, label, onDelete}) => {
 		let classNames = 'todo-list-item'
 		if (done) {
 			classNames += ' done'
@@ -41,7 +41,7 @@ const TodolistItem = ({done, important, onToggleImportant, onToggleDone, label, 
 				<button
 					type="button"
 					className="btn btn-outline-danger btn-sm float-right"
-					onClick={onDeleted}
+					onClick={onDelete}
 				>
 					<svg
 						width="20px"
